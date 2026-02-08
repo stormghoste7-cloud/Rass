@@ -3,66 +3,856 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Vibes - Connecte-toi par humeur, trouve des personnes qui te ressemblent">
-    <meta name="theme-color" content="#6366f1">
-    
-    <title>Vibes - Connecte par Humeur</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/images/favicon.png">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/responsive.css">
-    
-    <!-- Font Awesome -->
+    <title>MoodMusic 🎧 - Recommandations selon ton humeur</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #ff6b6b;
+            --dark: #1e1e2e;
+            --darker: #141422;
+            --card: #2d2d44;
+            --light: #ffffff;
+            --gray: #a0a0b0;
+            --happy: #fdcb6e;
+            --sad: #0984e3;
+            --angry: #d63031;
+            --chill: #00b894;
+            --energetic: #e17055;
+            --nostalgic: #a29bfe;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Section humeurs */
+        .mood-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--light);
+            text-align: center;
+        }
+
+        .mood-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .mood-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 20px 15px;
+            min-width: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mood-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .mood-btn.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
+        }
+
+        .mood-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .mood-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Section recommandations */
+        .recommendation-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .recommendation-section.active {
+            display: block;
+        }
+
+        .category-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            background-color: var(--card);
+            border: none;
+            border-radius: 30px;
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active {
+            background-color: var(--primary);
+        }
+
+        .category-btn:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .recommendation-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 2rem;
+        }
+
+        .recommendation-card {
+            background-color: var(--card);
+            border-radius: 15px;
+            padding: 1.8rem;
+            transition: transform 0.3s;
+            border-left: 5px solid var(--primary);
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-category {
+            display: inline-block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background-color: rgba(108, 92, 231, 0.2);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--light);
+        }
+
+        .card-desc {
+            color: var(--gray);
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .listen-btn {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .favorite-btn {
+            background-color: transparent;
+            border: 1px solid var(--gray);
+            color: var(--gray);
+        }
+
+        .listen-btn:hover {
+            background-color: #5649c0;
+        }
+
+        .favorite-btn:hover, .favorite-btn.active {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+
+        /* Section historique */
+        .history-section {
+            display: none;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-section.active {
+            display: block;
+        }
+
+        .history-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+
+        .history-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-emoji {
+            font-size: 1.2rem;
+        }
+
+        /* Contrôles */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 2rem;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .history-toggle-btn {
+            background-color: transparent;
+            border: 1px solid var(--gray);
+            color: var(--light);
+        }
+
+        .refresh-btn:hover {
+            background-color: #5649c0;
+        }
+
+        .history-toggle-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mood-selector {
+                gap: 10px;
+            }
+            
+            .mood-btn {
+                min-width: 100px;
+                padding: 15px 10px;
+            }
+            
+            .recommendation-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Page de chargement -->
-    <div id="loading-screen">
-        <div class="loading-content">
-            <div class="vibes-logo">
-                <div class="logo-animation">V</div>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-music"></i> MoodMusic <span class="emoji">🎧</span></h1>
+            <p class="subtitle">Comment te sens-tu aujourd'hui ? Découvre des recommandations personnalisées de musique, films et animes</p>
+        </header>
+
+        <section class="mood-section">
+            <h2 class="section-title">Choisis ton humeur</h2>
+            <div class="mood-selector">
+                <div class="mood-btn" data-mood="happy">
+                    <span class="mood-emoji">😄</span>
+                    <span class="mood-label">Heureux</span>
+                </div>
+                <div class="mood-btn" data-mood="sad">
+                    <span class="mood-emoji">😢</span>
+                    <span class="mood-label">Triste</span>
+                </div>
+                <div class="mood-btn" data-mood="angry">
+                    <span class="mood-emoji">😡</span>
+                    <span class="mood-label">En colère</span>
+                </div>
+                <div class="mood-btn" data-mood="chill">
+                    <span class="mood-emoji">🍃</span>
+                    <span class="mood-label">Détendu</span>
+                </div>
+                <div class="mood-btn" data-mood="energetic">
+                    <span class="mood-emoji">⚡</span>
+                    <span class="mood-label">Énergique</span>
+                </div>
+                <div class="mood-btn" data-mood="nostalgic">
+                    <span class="mood-emoji">✨</span>
+                    <span class="mood-label">Nostalgique</span>
+                </div>
             </div>
-            <p>Chargement de Vibes...</p>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
+        </section>
+
+        <section id="recommendation-section" class="recommendation-section">
+            <h2 class="section-title">Recommandations pour <span id="current-mood-text">ton humeur</span></h2>
+            
+            <div class="category-selector">
+                <button class="category-btn active" data-category="music">
+                    <i class="fas fa-music"></i> Musique
+                </button>
+                <button class="category-btn" data-category="anime">
+                    <i class="fas fa-tv"></i> Anime
+                </button>
+                <button class="category-btn" data-category="film">
+                    <i class="fas fa-film"></i> Film
+                </button>
             </div>
-        </div>
+            
+            <div class="recommendation-container" id="recommendation-container">
+                <!-- Les recommandations seront générées ici par JavaScript -->
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn refresh-btn" id="refresh-btn">
+                    <i class="fas fa-redo-alt"></i> Autres recommandations
+                </button>
+                <button class="control-btn history-toggle-btn" id="history-toggle">
+                    <i class="fas fa-history"></i> Voir mon historique
+                </button>
+            </div>
+        </section>
+        
+        <section id="history-section" class="history-section">
+            <h2 class="section-title">Mon historique d'humeurs</h2>
+            <div class="history-container" id="history-container">
+                <!-- L'historique sera généré ici par JavaScript -->
+            </div>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="action-btn" id="clear-history" style="background-color: var(--secondary); color: white;">
+                    <i class="fas fa-trash-alt"></i> Effacer l'historique
+                </button>
+            </div>
+        </section>
+
+        <footer>
+            <p>MoodMusic 🎧 - Projet créé avec ❤️ | Recommandations musicales et visuelles selon ton humeur</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">Toutes les recommandations sont générées aléatoirement à partir de notre base de données</p>
+        </footer>
     </div>
 
-    <!-- Navigation -->
-    <nav id="navbar" class="hidden"></nav>
+    <script>
+        // Base de données étendue
+        const database = {
+            happy: {
+                music: [
+                    { title: "Happy", artist: "Pharrell Williams", desc: "Une chanson qui rend heureux instantanément", link: "https://www.youtube.com/watch?v=ZbZSe6N_BXs" },
+                    { title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", desc: "Funk entraînant pour danser", link: "https://www.youtube.com/watch?v=OPf0YbXqDm0" },
+                    { title: "Can't Stop the Feeling!", artist: "Justin Timberlake", desc: "Energie positive et rythme dansant", link: "https://www.youtube.com/watch?v=ru0K8uYEZWw" },
+                    { title: "Don't Stop Me Now", artist: "Queen", desc: "Classique énergique et motivant", link: "https://www.youtube.com/watch?v=HgzGwKwLmgM" },
+                    { title: "Walking on Sunshine", artist: "Katrina and the Waves", desc: "Optimisme et joie de vivre", link: "https://www.youtube.com/watch?v=iPUmE-tne5U" }
+                ],
+                anime: [
+                    { title: "Haikyuu!!", desc: "Anime de volley-ball rempli d'énergie positive", link: "https://www.crunchyroll.com/haikyu" },
+                    { title: "Spy x Family", desc: "Comédie familiale pleine de moments joyeux", link: "https://www.crunchyroll.com/spy-x-family" },
+                    { title: "K-On!", desc: "Anime musical léger et mignon", link: "https://www.crunchyroll.com/k-on" },
+                    { title: "One Piece", desc: "Aventure épique avec des moments de joie", link: "https://www.crunchyroll.com/one-piece" }
+                ],
+                film: [
+                    { title: "La La Land", desc: "Comédie musicale romantique et colorée", link: "https://www.netflix.com/title/80095365" },
+                    { title: "Intouchables", desc: "Histoire d'amitié touchante et drôle", link: "https://www.netflix.com/title/70212606" },
+                    { title: "Le Monde de Narnia", desc: "Aventure fantastique épique", link: "https://www.disneyplus.com/fr-fr/movies/le-monde-de-narnia-le-lion-la-sorciere-blanche-et-larmoire-magique/3dHEzkqW8Ujp" },
+                    { title: "Ratatouille", desc: "Animation culinaire pleine de charme", link: "https://www.disneyplus.com/fr-fr/movies/ratatouille/3e5rY31dzf1B" }
+                ]
+            },
+            sad: {
+                music: [
+                    { title: "Someone Like You", artist: "Adele", desc: "Ballade émotive sur la perte amoureuse", link: "https://www.youtube.com/watch?v=hLQl3WQQoQ0" },
+                    { title: "Fix You", artist: "Coldplay", desc: "Chanson réconfortante dans les moments difficiles", link: "https://www.youtube.com/watch?v=k4V3Mo61fJM" },
+                    { title: "All I Want", artist: "Kodaline", desc: "Mélodie mélancolique et touchante", link: "https://www.youtube.com/watch?v=6T8sLJqqS24" },
+                    { title: "The Night We Met", artist: "Lord Huron", desc: "Nostalgie et regrets d'un amour perdu", link: "https://www.youtube.com/watch?v=KtlgYxa6BMU" },
+                    { title: "Je suis venu te dire que je m'en vais", artist: "Serge Gainsbourg", desc: "Chanson française mélancolique", link: "https://www.youtube.com/watch?v=sG52K4h7YlU" }
+                ],
+                anime: [
+                    { title: "Violet Evergarden", desc: "Anime émouvant sur l'apprentissage des émotions", link: "https://www.netflix.com/title/80182123" },
+                    { title: "Le Tombeau des Lucioles", desc: "Film d'animation triste mais magnifique", link: "https://www.netflix.com/title/60023642" },
+                    { title: "Your Lie in April", desc: "Histoire touchante sur la musique et l'amour", link: "https://www.netflix.com/title/80050063" },
+                    { title: "Anohana", desc: "Amis d'enfance confrontés à un deuil", link: "https://www.netflix.com/title/70299575" }
+                ],
+                film: [
+                    { title: "Eternal Sunshine of the Spotless Mind", desc: "Film sur la mémoire et les relations amoureuses", link: "https://www.netflix.com/title/60034572" },
+                    { title: "La La Land", desc: "Comédie musicale aux émotions contrastées", link: "https://www.netflix.com/title/80095365" },
+                    { title: "Forrest Gump", desc: "Histoire de vie touchante avec des moments tristes", link: "https://www.netflix.com/title/60000724" },
+                    { title: "Le Roi Lion", desc: "Animation Disney avec des moments émouvants", link: "https://www.disneyplus.com/fr-fr/movies/le-roi-lion/1HX6Pq4R2l4Q" }
+                ]
+            },
+            angry: {
+                music: [
+                    { title: "Break Stuff", artist: "Limp Bizkit", desc: "Pour libérer la frustration", link: "https://www.youtube.com/watch?v=J7Kbw3rZrs8" },
+                    { title: "In The End", artist: "Linkin Park", desc: "Nu metal énergique et cathartique", link: "https://www.youtube.com/watch?v=eVTXPUF4Oz4" },
+                    { title: "Killing In The Name", artist: "Rage Against The Machine", desc: "Protest song puissante et rageuse", link: "https://www.youtube.com/watch?v=bWXazVhlyxQ" },
+                    { title: "Chop Suey!", artist: "System Of A Down", desc: "Metal alternatif intense", link: "https://www.youtube.com/watch?v=CSvFpBOe8eY" },
+                    { title: "Du propre", artist: "Orelsan", desc: "Rap français énervé et sarcastique", link: "https://www.youtube.com/watch?v=PiF90THN16Y" }
+                ],
+                anime: [
+                    { title: "Attack on Titan", desc: "Action intense et combat pour la survie", link: "https://www.crunchyroll.com/attack-on-titan" },
+                    { title: "Berserk", desc: "Dark fantasy sombre et brutale", link: "https://www.crunchyroll.com/berserk" },
+                    { title: "Tokyo Ghoul", desc: "Horreur et combat pour l'identité", link: "https://www.netflix.com/title/80025541" },
+                    { title: "Jujutsu Kaisen", desc: "Action surnaturelle et combats épiques", link: "https://www.crunchyroll.com/jujutsu-kaisen" }
+                ],
+                film: [
+                    { title: "John Wick", desc: "Action pure et vengeance", link: "https://www.netflix.com/title/80015878" },
+                    { title: "Fight Club", desc: "Film culte sur la rébellion et la violence", link: "https://www.netflix.com/title/26004747" },
+                    { title: "Mad Max: Fury Road", desc: "Action post-apocalyptique intense", link: "https://www.netflix.com/title/80015724" },
+                    { title: "Gladiator", desc: "Épopée historique avec vengeance", link: "https://www.netflix.com/title/60000879" }
+                ]
+            },
+            chill: {
+                music: [
+                    { title: "Lo-Fi Hip Hop", artist: "Divers artistes", desc: "Beats relaxants pour étudier ou se détendre", link: "https://www.youtube.com/watch?v=5qap5aO4i9A" },
+                    { title: "Weightless", artist: "Marconi Union", desc: "Musique scientifiquement conçue pour réduire l'anxiété", link: "https://www.youtube.com/watch?v=UfcAVejslrU" },
+                    { title: "Sunflower", artist: "Post Malone ft. Swae Lee", desc: "Vibe relaxante et estivale", link: "https://www.youtube.com/watch?v=ApXoWvfEYVU" },
+                    { title: "Island in the Sun", artist: "Weezer", desc: "Chanson douce et rêveuse", link: "https://www.youtube.com/watch?v=erG5rgNYSdk" },
+                    { title: "La Seine", artist: "Vanessa Paradis", desc: "Chanson française légère et poétique", link: "https://www.youtube.com/watch?v=3MteSlHnzPs" }
+                ],
+                anime: [
+                    { title: "Mushishi", desc: "Anime zen et mystérieux sur les créatures invisibles", link: "https://www.crunchyroll.com/mushi-shi" },
+                    { title: "Mon Voisin Totoro", desc: "Film Ghibli relaxant et enchanteur", link: "https://www.netflix.com/title/60032294" },
+                    { title: "Yuru Camp", desc: "Anime sur le camping relaxant", link: "https://www.crunchyroll.com/laid-back-camp" },
+                    { title: "Bartender", desc: "Anime relaxant sur l'art du cocktail", link: "https://www.crunchyroll.com/bartender" }
+                ],
+                film: [
+                    { title: "Le Voyage de Chihiro", desc: "Film Ghibli magique et contemplatif", link: "https://www.netflix.com/title/60023642" },
+                    { title: "Chef", desc: "Film culinaire feel-good", link: "https://www.netflix.com/title/70295176" },
+                    { title: "The Secret Life of Walter Mitty", desc: "Aventure introspective et inspirante", link: "https://www.netflix.com/title/70267157" },
+                    { title: "Amélie Poulain", desc: "Film français charmant et poétique", link: "https://www.netflix.com/title/60022815" }
+                ]
+            },
+            energetic: {
+                music: [
+                    { title: "Thunderstruck", artist: "AC/DC", desc: "Rock énergique pour se motiver", link: "https://www.youtube.com/watch?v=v2AC41dglnM" },
+                    { title: "Eye of the Tiger", artist: "Survivor", desc: "Hymne de motivation et de détermination", link: "https://www.youtube.com/watch?v=btPJPFnesV4" },
+                    { title: "Titanium", artist: "David Guetta ft. Sia", desc: "Électro puissante et inspirante", link: "https://www.youtube.com/watch?v=JRfuAukYTKg" },
+                    { title: "Power", artist: "Kanye West", desc: "Hip-hop énergique et affirmatif", link: "https://www.youtube.com/watch?v=L53gjP-TtGE" },
+                    { title: "Pump It", artist: "The Black Eyed Peas", desc: "Énergie pure pour bouger", link: "https://www.youtube.com/watch?v=Z5ZlnhOWm0w" }
+                ],
+                anime: [
+                    { title: "My Hero Academia", desc: "Super-héros avec action et détermination", link: "https://www.crunchyroll.com/my-hero-academia" },
+                    { title: "Demon Slayer", desc: "Action surnaturelle avec animation époustouflante", link: "https://www.crunchyroll.com/demon-slayer-kimetsu-no-yaiba" },
+                    { title: "One Punch Man", desc: "Action parodique et explosive", link: "https://www.netflix.com/title/80039862" },
+                    { title: "Gurren Lagann", desc: "Mecha surdimensionné et exaltant", link: "https://www.crunchyroll.com/gurren-lagann" }
+                ],
+                film: [
+                    { title: "Mad Max: Fury Road", desc: "Action post-apocalyptique intense et frénétique", link: "https://www.netflix.com/title/80015724" },
+                    { title: "Matrix", desc: "Sci-fi avec action révolutionnaire", link: "https://www.netflix.com/title/20557937" },
+                    { title: "Avengers: Endgame", desc: "Super-héros épique et spectaculaire", link: "https://www.disneyplus.com/fr-fr/movies/avengers-endgame/aRbVJUb2h2Rf" },
+                    { title: "300", desc: "Épopée historique stylisée et énergique", link: "https://www.netflix.com/title/70043995" }
+                ]
+            },
+            nostalgic: {
+                music: [
+                    { title: "Bohemian Rhapsody", artist: "Queen", desc: "Classique intemporel et épique", link: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ" },
+                    { title: "Smells Like Teen Spirit", artist: "Nirvana", desc: "Hymne grunge des années 90", link: "https://www.youtube.com/watch?v=hTWKbfoikeg" },
+                    { title: "Billie Jean", artist: "Michael Jackson", desc: "Pop iconique des années 80", link: "https://www.youtube.com/watch?v=Zi_XLOBDo_Y" },
+                    { title: "Lose Yourself", artist: "Eminem", desc: "Hip-hop inspirant des années 2000", link: "https://www.youtube.com/watch?v=_Yhyp-_hX2s" },
+                    { title: "Comme d'habitude", artist: "Claude François", desc: "Classique français intemporel", link: "https://www.youtube.com/watch?v=3bK3M8o5l9E" }
+                ],
+                anime: [
+                    { title: "Dragon Ball Z", desc: "Classique d'action et de super-pouvoirs", link: "https://www.crunchyroll.com/dragon-ball-z" },
+                    { title: "Sailor Moon", desc: "Magical girl emblématique des années 90", link: "https://www.crunchyroll.com/sailor-moon" },
+                    { title: "Naruto", desc: "Ninja classique avec un message d'amitié", link: "https://www.crunchyroll.com/naruto" },
+                    { title: "Pokémon", desc: "Aventure nostalgique pour toute une génération", link: "https://www.netflix.com/title/80027042" }
+                ],
+                film: [
+                    { title: "Retour vers le futur", desc: "Classique de science-fiction des années 80", link: "https://www.netflix.com/title/60010110" },
+                    { title: "Harry Potter à l'école des sorciers", desc: "Début de la saga magique", link: "https://www.netflix.com/title/60004484" },
+                    { title: "Star Wars: Un nouvel espoir", desc: "Début de la saga spatiale légendaire", link: "https://www.disneyplus.com/fr-fr/movies/star-wars-un-nouvel-espoir/12fVeZxD2fWJ" },
+                    { title: "Le Seigneur des Anneaux", desc: "Épopée fantastique monumentale", link: "https://www.netflix.com/title/60004480" }
+                ]
+            }
+        };
 
-    <!-- Container principal -->
-    <div id="app-container">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="hidden"></aside>
-        
-        <!-- Contenu principal -->
-        <main id="main-content">
-            <!-- Le contenu sera injecté dynamiquement -->
-        </main>
-        
-        <!-- Modal overlay -->
-        <div id="modal-overlay" class="modal-overlay hidden"></div>
-    </div>
+        // Variables d'état
+        let currentMood = null;
+        let currentCategory = 'music';
+        let favorites = JSON.parse(localStorage.getItem('moodmusic_favorites')) || [];
+        let moodHistory = JSON.parse(localStorage.getItem('moodmusic_history')) || [];
+        let currentRecommendations = [];
 
-    <!-- Notification toast -->
-    <div id="toast-container"></div>
+        // Éléments DOM
+        const moodButtons = document.querySelectorAll('.mood-btn');
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        const recommendationSection = document.getElementById('recommendation-section');
+        const recommendationContainer = document.getElementById('recommendation-container');
+        const currentMoodText = document.getElementById('current-mood-text');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const historyToggle = document.getElementById('history-toggle');
+        const historySection = document.getElementById('history-section');
+        const historyContainer = document.getElementById('history-container');
+        const clearHistoryBtn = document.getElementById('clear-history');
 
-    <!-- Audio pour les notifications -->
-    <audio id="notification-sound" preload="auto">
-        <source src="assets/sounds/notification.mp3" type="audio/mpeg">
-    </audio>
+        // Mapper les humeurs aux émoticônes
+        const moodEmojis = {
+            happy: '😄',
+            sad: '😢',
+            angry: '😡',
+            chill: '🍃',
+            energetic: '⚡',
+            nostalgic: '✨'
+        };
 
-    <!-- Scripts -->
-    <script type="module" src="js/app.js"></script>
-    <script type="module" src="js/config.js"></script>
+        // Mapper les humeurs aux noms français
+        const moodNames = {
+            happy: 'Heureux',
+            sad: 'Triste',
+            angry: 'En colère',
+            chill: 'Détendu',
+            energetic: 'Énergique',
+            nostalgic: 'Nostalgique'
+        };
+
+        // Initialisation
+        function init() {
+            // Charger l'historique depuis le localStorage
+            loadHistory();
+            
+            // Ajouter les écouteurs d'événements
+            moodButtons.forEach(btn => {
+                btn.addEventListener('click', () => selectMood(btn.dataset.mood));
+            });
+            
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', () => selectCategory(btn.dataset.category));
+            });
+            
+            refreshBtn.addEventListener('click', refreshRecommendations);
+            historyToggle.addEventListener('click', toggleHistory);
+            clearHistoryBtn.addEventListener('click', clearHistory);
+            
+            // Sélectionner une humeur par défaut
+            selectMood('happy');
+        }
+
+        // Sélectionner une humeur
+        function selectMood(mood) {
+            // Mettre à jour l'humeur actuelle
+            currentMood = mood;
+            
+            // Mettre à jour l'affichage des boutons d'humeur
+            moodButtons.forEach(btn => {
+                if (btn.dataset.mood === mood) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Mettre à jour le texte de l'humeur actuelle
+            currentMoodText.textContent = moodNames[mood];
+            
+            // Afficher la section des recommandations
+            recommendationSection.classList.add('active');
+            
+            // Ajouter à l'historique
+            addToHistory(mood);
+            
+            // Générer les recommandations
+            generateRecommendations();
+        }
+
+        // Sélectionner une catégorie
+        function selectCategory(category) {
+            currentCategory = category;
+            
+            // Mettre à jour l'affichage des boutons de catégorie
+            categoryButtons.forEach(btn => {
+                if (btn.dataset.category === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Regénérer les recommandations
+            generateRecommendations();
+        }
+
+        // Générer les recommandations
+        function generateRecommendations() {
+            if (!currentMood) return;
+            
+            // Récupérer les données pour l'humeur et la catégorie actuelles
+            const items = database[currentMood][currentCategory];
+            
+            // Mélanger les éléments
+            const shuffledItems = [...items].sort(() => Math.random() - 0.5);
+            
+            // Prendre les 3 premiers éléments
+            currentRecommendations = shuffledItems.slice(0, 3);
+            
+            // Afficher les recommandations
+            displayRecommendations();
+        }
+
+        // Afficher les recommandations
+        function displayRecommendations() {
+            recommendationContainer.innerHTML = '';
+            
+            currentRecommendations.forEach(item => {
+                const isFavorite = favorites.some(fav => 
+                    fav.title === item.title && fav.category === currentCategory && fav.mood === currentMood
+                );
+                
+                const card = document.createElement('div');
+                card.className = 'recommendation-card';
+                
+                let categoryText = '';
+                if (currentCategory === 'music') categoryText = 'Musique';
+                if (currentCategory === 'anime') categoryText = 'Anime';
+                if (currentCategory === 'film') categoryText = 'Film';
+                
+                card.innerHTML = `
+                    <div class="card-category">${categoryText}</div>
+                    <h3 class="card-title">${item.title}</h3>
+                    <p class="card-desc">${item.artist || ''} ${item.artist ? ' - ' : ''}${item.desc}</p>
+                    <div class="card-actions">
+                        <a href="${item.link}" target="_blank" class="action-btn listen-btn">
+                            <i class="fas fa-play"></i> Écouter
+                        </a>
+                        <button class="action-btn favorite-btn ${isFavorite ? 'active' : ''}" data-title="${item.title}" data-desc="${item.desc}" data-link="${item.link}">
+                            <i class="fas fa-heart"></i> ${isFavorite ? 'Retirer' : 'Favoris'}
+                        </button>
+                    </div>
+                `;
+                
+                recommendationContainer.appendChild(card);
+            });
+            
+            // Ajouter les écouteurs d'événements pour les boutons favoris
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                btn.addEventListener('click', toggleFavorite);
+            });
+        }
+
+        // Rafraîchir les recommandations
+        function refreshRecommendations() {
+            generateRecommendations();
+        }
+
+        // Basculer un favori
+        function toggleFavorite(event) {
+            const button = event.currentTarget;
+            const title = button.dataset.title;
+            const desc = button.dataset.desc;
+            const link = button.dataset.link;
+            
+            const favoriteItem = {
+                title,
+                desc,
+                link,
+                mood: currentMood,
+                category: currentCategory,
+                date: new Date().toISOString()
+            };
+            
+            // Vérifier si l'élément est déjà dans les favoris
+            const existingIndex = favorites.findIndex(fav => 
+                fav.title === title && fav.category === currentCategory && fav.mood === currentMood
+            );
+            
+            if (existingIndex !== -1) {
+                // Retirer des favoris
+                favorites.splice(existingIndex, 1);
+                button.classList.remove('active');
+                button.innerHTML = '<i class="fas fa-heart"></i> Favoris';
+            } else {
+                // Ajouter aux favoris
+                favorites.push(favoriteItem);
+                button.classList.add('active');
+                button.innerHTML = '<i class="fas fa-heart"></i> Retirer';
+            }
+            
+            // Sauvegarder dans le localStorage
+            localStorage.setItem('moodmusic_favorites', JSON.stringify(favorites));
+        }
+
+        // Ajouter à l'historique
+        function addToHistory(mood) {
+            const historyItem = {
+                mood,
+                date: new Date().toISOString()
+            };
+            
+            // Ajouter au début de l'historique
+            moodHistory.unshift(historyItem);
+            
+            // Garder seulement les 10 derniers éléments
+            if (moodHistory.length > 10) {
+                moodHistory = moodHistory.slice(0, 10);
+            }
+            
+            // Sauvegarder dans le localStorage
+            localStorage.setItem('moodmusic_history', JSON.stringify(moodHistory));
+            
+            // Mettre à jour l'affichage de l'historique
+            loadHistory();
+        }
+
+        // Charger l'historique
+        function loadHistory() {
+            historyContainer.innerHTML = '';
+            
+            if (moodHistory.length === 0) {
+                historyContainer.innerHTML = '<p style="color: var(--gray); text-align: center; width: 100%;">Aucun historique pour le moment</p>';
+                return;
+            }
+            
+            moodHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const date = new Date(item.date);
+                const formattedDate = date.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                historyItem.innerHTML = `
+                    <span class="history-emoji">${moodEmojis[item.mood]}</span>
+                    <span>${moodNames[item.mood]} - ${formattedDate}</span>
+                `;
+                
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        // Basculer l'affichage de l'historique
+        function toggleHistory() {
+            if (historySection.classList.contains('active')) {
+                historySection.classList.remove('active');
+                historyToggle.innerHTML = '<i class="fas fa-history"></i> Voir mon historique';
+            } else {
+                historySection.classList.add('active');
+                historyToggle.innerHTML = '<i class="fas fa-times"></i> Masquer l\'historique';
+            }
+        }
+
+        // Effacer l'historique
+        function clearHistory() {
+            if (confirm("Voulez-vous vraiment effacer tout l'historique ?")) {
+                moodHistory = [];
+                localStorage.setItem('moodmusic_history', JSON.stringify(moodHistory));
+                loadHistory();
+            }
+        }
+
+        // Initialiser l'application
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
